@@ -3,371 +3,449 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>NOSS AI - The Core V2.4 (Admin System)</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;900&family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<title>NOSS AI - The Core V1.3</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
   :root {
-    --bg-color: #000000;
+    --bg-color: #050505;
     --primary: #00ff88;
-    --secondary: #0099ff;
-    --text: #ffffff;
-    --glass: rgba(255, 255, 255, 0.05);
-    --border: rgba(255, 255, 255, 0.1);
+    --primary-dim: rgba(0, 255, 136, 0.2);
+    --secondary: #00ccff;
+    --text: #e0e0e0;
+    --border: rgba(255, 255, 255, 0.08);
+    --glass: rgba(10, 10, 10, 0.7);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
     --safe-bottom: env(safe-area-inset-bottom);
+    --header-h: 70px;
+    --nav-mobile-h: 60px;
   }
 
-  * {margin:0;padding:0;box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
-  
+  * {margin:0;padding:0;box-sizing:border-box; -webkit-tap-highlight-color: transparent; outline: none; scrollbar-width: thin; scrollbar-color: var(--primary) #111;}
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: #111; }
+
   body {
     background-color: var(--bg-color);
     color: var(--text);
     font-family: 'Tajawal', sans-serif;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overflow-x: hidden;
-    padding-bottom: calc(100px + var(--safe-bottom)); /* Increased padding for ticker */
-    transition: background-color 0.5s ease;
+    height: 100vh;
+    height: 100dvh; /* Mobile fix */
+    overflow: hidden; /* Prevent body scroll, handle inside pages */
+    transition: background 0.5s ease;
+    background-image: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
   }
 
-  /* === EFFECTS === */
+  /* === MAX EFFECTS === */
+  /* 1. Scanlines & Flicker */
   .scanlines {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 900;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+    position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
     background-size: 100% 4px;
     animation: scanline 10s linear infinite;
-    opacity: 0.6;
+    opacity: 0.3;
+  }
+  .overlay-flicker {
+    position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+    background: rgba(0, 255, 136, 0.02);
+    opacity: 0; animation: flicker 4s infinite;
   }
   @keyframes scanline { from {background-position: 0 0;} to {background-position: 0 100%;} }
-  
-  .bg-animation {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-    background: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
-  }
-  .particles {
-    position: absolute; width: 100%; height: 100%;
-    background-image: radial-gradient(var(--primary) 1px, transparent 1px);
+  @keyframes flicker { 0%,100% {opacity:0;} 5% {opacity:0.1;} 10% {opacity:0;} }
+
+  /* 2. Cyber Grid Background */
+  .cyber-grid {
+    position: fixed; top: 0; left: 0; width: 200vw; height: 200vh;
+    background-image: 
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
     background-size: 50px 50px;
-    opacity: 0.1;
-    animation: particleMove 30s linear infinite;
+    transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
+    animation: gridMove 20s linear infinite;
+    opacity: 0.2; z-index: -1; pointer-events: none;
   }
-  @keyframes particleMove { from {transform: translateY(0);} to {transform: translateY(-50px);} }
+  @keyframes gridMove { 0% {transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);} 100% {transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);} }
 
-  /* Nav */
-  nav {
-    position: fixed; top: 0; width: 100%; z-index: 1000;
-    background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border);
-    height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
-  }
-  .logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
-  .logo span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
-
-  .nav-tabs { display: flex; gap: 10px; }
-  .nav-btn {
-    background: transparent; border: none; color: #666; font-size: 14px; padding: 8px 15px;
-    cursor: pointer; transition: 0.3s; border-radius: 20px; font-weight: bold;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .nav-btn.active { color: var(--bg-color); background: var(--primary); box-shadow: 0 0 15px var(--primary); }
-  .nav-btn:hover:not(.active) { color: white; text-shadow: 0 0 5px white; }
+  /* 3. Neon Text */
+  .neon-text { text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary-dim); }
   
-  /* Admin Button (Hidden by default) */
-  #adminBtn { display: none; background: #ff4444 !important; color: white !important; }
+  /* === NAVIGATION === */
+  nav {
+    position: fixed; top: 0; width: 100%; height: var(--header-h); z-index: 1000;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+    border-bottom: var(--glass-border);
+    display: flex; align-items: center; justify-content: space-between; padding: 0 25px;
+    box-shadow: 0 5px 30px rgba(0,0,0,0.8);
+  }
+  .logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .logo span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+  
+  .nav-tabs { display: flex; gap: 10px; height: 100%; align-items: center; }
+  .nav-btn {
+    background: transparent; border: 1px solid transparent; color: #888; 
+    font-size: 14px; padding: 8px 20px; border-radius: 30px; cursor: pointer; 
+    transition: 0.3s; font-weight: bold; display: flex; align-items: center; gap: 8px;
+    position: relative; overflow: hidden;
+  }
+  .nav-btn::before { content:''; position: absolute; inset:0; background: var(--primary); opacity:0; transition:0.3s; z-index:-1; }
+  .nav-btn.active { color: #000; border-color: var(--primary); box-shadow: 0 0 15px var(--primary); background: var(--primary); }
+  .nav-btn:hover:not(.active) { color: #fff; border-color: rgba(255,255,255,0.3); }
 
-  /* Mobile Responsive */
+  /* === MOBILE NAV === */
   @media(max-width: 768px) {
     nav { 
-      top: auto; bottom: 0; border-top: 1px solid var(--border); border-bottom: none; 
-      justify-content: center; height: auto; padding: 10px 10px calc(10px + var(--safe-bottom)); 
-      background: rgba(0,0,0,0.95);
+      top: auto; bottom: 0; height: calc(var(--nav-mobile-h) + var(--safe-bottom)); 
+      padding: 10px 10px var(--safe-bottom);
+      border-top: var(--glass-border); border-bottom: none; 
+      justify-content: center; background: rgba(0,0,0,0.95);
     }
     .logo, .user-info { display: none; }
-    .nav-tabs { width: 100%; justify-content: space-between; gap: 5px; }
-    .nav-btn { flex-direction: column; font-size: 10px; gap: 5px; padding: 10px 5px; flex: 1; border-radius: 12px; }
-    .nav-btn i { font-size: 20px; margin-bottom: 2px; }
+    .nav-tabs { width: 100%; justify-content: space-between; }
+    .nav-btn { flex-direction: column; gap: 4px; font-size: 10px; flex: 1; padding: 5px 0; border-radius: 12px; border: none; }
+    .nav-btn i { font-size: 18px; margin-bottom: 2px; }
+    .nav-btn.active { background: transparent; color: var(--primary); box-shadow: none; text-shadow: 0 0 10px var(--primary); }
+    
     .mobile-top {
       position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px;
       padding-top: max(15px, env(safe-area-inset-top));
       display: flex; justify-content: space-between; align-items: center;
-      background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 999;
-      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); 
+      border-bottom: var(--glass-border); z-index: 999;
     }
   }
   @media(min-width: 769px) { .mobile-top { display: none; } }
 
-  /* Pages */
+  /* === PAGE LAYOUT === */
   .page { 
-    display: none; padding: 100px 20px 40px; 
-    max-width: 1200px; margin: 0 auto; 
-    animation: fadeUp 0.4s ease; height: calc(100vh - 80px);
-  }
-  .page.active { display: block; }
-  @media(max-width: 768px) { .page { padding: 80px 15px 100px; height: auto; min-height: 80vh; } }
-  @keyframes fadeUp { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
-
-  /* General UI */
-  .chat-container {
-    background: #0a0a0a; border: 1px solid var(--border); border-radius: 20px;
-    height: 100%; max-height: 75vh; display: flex; flex-direction: column; overflow: hidden;
-  }
-  .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-  .msg { max-width: 85%; padding: 12px 16px; border-radius: 15px; font-size: 15px; line-height: 1.6; }
-  .msg.user { align-self: flex-end; background: #222; border: 1px solid #333; }
-  .msg.ai { align-self: flex-start; background: rgba(0, 255, 136, 0.05); color: var(--primary); border: 1px solid rgba(0, 255, 136, 0.2); }
-  
-  .input-box { padding: 15px; background: #111; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-  .input-box input { flex: 1; background: #000; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 30px; outline: none; }
-  .action-btn { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; background: var(--primary); color: black; display: flex; align-items: center; justify-content: center; }
-
-  .generator-box { text-align: center; background: rgba(255,255,255,0.02); padding: 30px; border-radius: 20px; border: 1px solid var(--border); }
-  .gen-input { width: 100%; background: #000; border: 1px solid #333; color: white; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; }
-  .gen-btn-lg { background: linear-gradient(45deg, var(--secondary), var(--primary)); border: none; color: black; font-weight: 900; padding: 15px 40px; border-radius: 30px; cursor: pointer; width: 100%; }
-  
-  .coder-container { display: flex; flex-direction: column; gap: 20px; height: 100%; }
-  .coder-split { display: flex; flex: 1; gap: 20px; height: 100%; }
-  .coder-editor, .coder-preview { flex: 1; background: #0a0a0a; border: 1px solid var(--border); border-radius: 15px; display: flex; flex-direction: column; overflow: hidden; }
-  #codeOutput { width:100%; height:100%; background:#080808; color:#0f0; border:none; padding:15px; font-family:monospace; resize:none; outline:none; }
-  .coder-preview iframe { width: 100%; height: 100%; border: none; background: white; }
-  @media(max-width: 768px) { 
-    .coder-split { flex-direction: column; } 
-    .coder-editor, .coder-preview { height: 400px; } 
-  }
-
-  /* AUTH */
-  .auth-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .auth-box { background: #111; padding: 30px; border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 400px; text-align: center; }
-  .auth-input { background: #000; border: 1px solid #333; color: white; padding: 15px; width: 100%; margin: 10px 0; text-align: center; border-radius: 10px; }
-
-  /* === ADMIN PANEL STYLES === */
-  .admin-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
-  .admin-section h3 { margin-bottom: 15px; color: var(--primary); border-bottom: 1px solid #333; padding-bottom: 10px; }
-  .user-list { width: 100%; border-collapse: collapse; }
-  .user-list th, .user-list td { text-align: right; padding: 10px; border-bottom: 1px solid #333; }
-  .user-list th { color: #888; font-size: 12px; }
-  .delete-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-  .setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-  .color-picker { width: 50px; height: 30px; border: none; cursor: pointer; }
-
-  /* === FOOTER TICKER === */
-  .footer-ticker {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 35px;
-    background: var(--bg-color); border-top: 1px solid var(--border);
-    display: flex; align-items: center; z-index: 2000; overflow: hidden;
-    padding-bottom: var(--safe-bottom);
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
+    position: absolute; top: var(--header-h); left: 0; width: 100%; 
+    height: calc(100dvh - var(--header-h) - 35px); /* Minus header & ticker */
+    padding: 20px; opacity: 0; visibility: hidden; transform: scale(0.95);
+    transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; overflow-x: hidden;
   }
   @media(max-width: 768px) {
-     /* On mobile, place it above the nav bar */
-     .footer-ticker { bottom: calc(60px + var(--safe-bottom)); border-bottom: 1px solid var(--border); }
+    .page { 
+      top: 50px; /* Mobile header height */
+      height: calc(100dvh - 50px - var(--nav-mobile-h) - var(--safe-bottom) - 35px); /* Adjusted for mobile */
+    }
   }
-  .ticker-wrap { width: 100%; overflow: hidden; white-space: nowrap; }
-  .ticker-move { display: inline-block; padding-left: 100%; animation: ticker 20s linear infinite; color: var(--primary); font-size: 14px; font-weight: bold; }
-  @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+  .page.active { opacity: 1; visibility: visible; transform: scale(1); }
 
-  .loader-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index: 10; flex-direction: column; }
-  .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-  @keyframes spin { 100% {transform: rotate(360deg);} }
+  /* === CHAT UI === */
+  .chat-container {
+    background: rgba(15, 15, 15, 0.6); border: var(--glass-border); border-radius: 20px;
+    height: 100%; display: flex; flex-direction: column; overflow: hidden;
+    backdrop-filter: blur(10px); box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  }
+  .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+  .msg { 
+    max-width: 85%; padding: 12px 18px; border-radius: 18px; font-size: 15px; line-height: 1.5; 
+    position: relative; animation: slideUp 0.3s ease; word-wrap: break-word;
+  }
+  @keyframes slideUp { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+  
+  .msg.user { align-self: flex-end; background: linear-gradient(135deg, #222, #333); border: 1px solid #444; color: #fff; border-bottom-left-radius: 4px; }
+  .msg.ai { align-self: flex-start; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); color: #ddd; border-bottom-right-radius: 4px; }
+  .msg.ai strong { color: var(--primary); }
+  
+  .input-box { 
+    padding: 15px; background: rgba(0,0,0,0.8); border-top: var(--glass-border); 
+    display: flex; gap: 10px; align-items: center; 
+  }
+  .input-box input {
+    flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; 
+    border-radius: 30px; font-size: 16px; transition: 0.3s;
+  }
+  .input-box input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-dim); }
+  .action-btn {
+    width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--primary); 
+    color: #000; font-size: 18px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center;
+  }
+  .action-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--primary); }
+
+  /* === CODER UI === */
+  .coder-container { display: flex; flex-direction: column; gap: 15px; height: 100%; }
+  .coder-hero {
+    background: linear-gradient(to bottom, rgba(20,20,20,0.9), rgba(10,10,10,0.95));
+    border: var(--glass-border); border-radius: 15px; padding: 15px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .prompt-wrapper { display: flex; gap: 10px; background: #000; padding: 5px; border-radius: 30px; border: 1px solid #333; }
+  .coder-input { flex: 1; background: none; border: none; color: white; padding: 10px 15px; }
+  .coder-btn { 
+    background: var(--primary); border: none; border-radius: 25px; padding: 0 25px; 
+    font-weight: bold; cursor: pointer; color: black; display: flex; align-items: center; gap: 5px;
+  }
+  
+  .coder-workspace { display: flex; flex: 1; gap: 15px; overflow: hidden; }
+  .code-pane, .preview-pane { 
+    flex: 1; background: #080808; border: var(--glass-border); border-radius: 15px; 
+    display: flex; flex-direction: column; overflow: hidden; 
+  }
+  .pane-header { padding: 10px; background: #151515; border-bottom: 1px solid #222; font-size: 12px; color: #888; display: flex; justify-content: space-between; }
+  
+  @media(max-width: 768px) { .coder-workspace { flex-direction: column; } }
+  
+  /* === ADMIN UI === */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+  .stat-card { 
+    background: rgba(255,255,255,0.03); border: var(--glass-border); padding: 20px; 
+    border-radius: 15px; text-align: center; position: relative; overflow: hidden;
+  }
+  .stat-card::before { content:''; position: absolute; top:0; left:0; width:100%; height:3px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+  .stat-num { font-size: 26px; font-weight: 900; color: #fff; margin: 5px 0; }
+  
+  .admin-section { background: rgba(0,0,0,0.4); border: var(--glass-border); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+  .admin-section h3 { border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; color: var(--primary); }
+  
+  .user-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  /* Horizontal scroll for table on mobile */
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .user-table th { text-align: right; padding: 10px; color: #888; border-bottom: 1px solid #333; white-space: nowrap; }
+  .user-table td { padding: 10px; border-bottom: 1px solid #222; white-space: nowrap; }
+  
+  /* === AUTH & TICKER === */
+  .auth-modal { 
+    position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .auth-box { 
+    background: #050505; border: 1px solid var(--primary); padding: 40px; border-radius: 20px; 
+    width: 100%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0,255,136,0.15);
+  }
+  .footer-ticker {
+    position: fixed; bottom: 0; left: 0; width: 100%; height: 35px;
+    background: #000; border-top: 1px solid #222; z-index: 2000;
+    display: flex; align-items: center; padding-bottom: var(--safe-bottom);
+  }
+  @media(max-width: 768px) {
+    /* Push ticker above mobile nav */
+    .footer-ticker { bottom: calc(var(--nav-mobile-h) + var(--safe-bottom)); border-bottom: 1px solid #222; }
+  }
+  .ticker-move { display: inline-block; padding-left: 100%; animation: ticker 20s linear infinite; color: var(--primary); font-size: 13px; font-weight: bold; white-space: nowrap; }
+  @keyframes ticker { 0% {transform: translate3d(0,0,0);} 100% {transform: translate3d(-100%,0,0);} }
+
+  /* === UTILS === */
+  .hidden { display: none !important; }
+  #adminBtn { display: none; color: #ff4444 !important; }
+  .loading-bar { width: 100%; height: 3px; background: #222; margin-top: 10px; display: none; }
+  .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; box-shadow: 0 0 10px var(--primary); }
 </style>
 </head>
 <body>
 
-<div class="bg-animation"><div class="particles"></div></div>
+<div class="cyber-grid"></div>
 <div class="scanlines"></div>
+<div class="overlay-flicker"></div>
 
-<!-- Mobile Top Bar -->
+<!-- Mobile Header -->
 <div class="mobile-top">
-  <div class="logo">NOSS <span>AI</span></div>
-  <div style="font-size:12px; color:#888; display:flex; gap:10px; align-items:center;">
-    <span id="mobUser">User</span>
-    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:#ff4444; cursor:pointer;"></i>
+  <div class="logo">NOSS <span class="neon-text">AI</span></div>
+  <div style="font-size:12px; color:#888;">
+    <span id="mobUser">Ghost</span>
+    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:#ff4444; margin-right:10px;"></i>
   </div>
 </div>
 
-<!-- Nav -->
+<!-- Navigation -->
 <nav>
-  <div class="logo">NOSS <span>AI</span> <small style="font-size:10px;color:#666;font-weight:400;margin-right:5px;">V2.4 ADMIN</small></div>
+  <div class="logo">NOSS <span class="neon-text">AI</span> <small style="font-size:10px;color:#666;margin-right:5px;letter-spacing:0">V1.3</small></div>
   <div class="nav-tabs">
     <button class="nav-btn active" onclick="setPage('chat')"><i class="fas fa-brain"></i> <span>القلب</span></button>
     <button class="nav-btn" onclick="setPage('coder')"><i class="fas fa-code"></i> <span>المطور</span></button>
-    <button class="nav-btn" onclick="setPage('video')"><i class="fas fa-film"></i> <span>فيديو</span></button>
-    <button class="nav-btn" onclick="setPage('image')"><i class="fas fa-image"></i> <span>مرسم</span></button>
-    <!-- Admin Button -->
     <button class="nav-btn" id="adminBtn" onclick="setPage('admin')"><i class="fas fa-shield-alt"></i> <span>الإدارة</span></button>
   </div>
-  <div class="user-info" style="display:flex;align-items:center;gap:15px;">
-    <span id="deskUser" style="color:var(--primary); font-weight:bold;">GHOST</span>
-    <button onclick="logout()" style="background:#222;color:#ff4444;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;"><i class="fas fa-power-off"></i></button>
+  <div class="user-info">
+    <div style="text-align:left; line-height:1.2;">
+      <span id="deskUser" style="color:#fff; font-weight:bold; font-size:14px; display:block;">Ghost</span>
+      <span style="font-size:10px; color:var(--primary);">ONLINE</span>
+    </div>
+    <button onclick="logout()" style="background:#111; border:1px solid #333; color:#ff4444; padding:8px 12px; border-radius:10px; margin-right:10px; cursor:pointer;"><i class="fas fa-power-off"></i></button>
   </div>
 </nav>
+
+<!-- Auth Screen -->
+<div id="authScreen" class="auth-modal">
+  <div class="auth-box">
+    <div style="margin-bottom:20px; font-size:40px; color:var(--primary); animation: pulse 2s infinite;"><i class="fas fa-fingerprint"></i></div>
+    <h1 style="font-size: 24px; margin-bottom: 5px;">SYSTEM <span class="neon-text">ACCESS</span></h1>
+    <p style="color:#666; margin-bottom: 25px; font-size:12px;">V1.3 Secure Login</p>
+    
+    <div id="loginForm">
+      <input type="text" id="loginUser" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="اسم المستخدم">
+      <input type="password" id="loginPass" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="كلمة المرور">
+      <button onclick="attemptLogin()" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:30px; font-weight:bold; cursor:pointer; margin-top:10px;">دخول النظام</button>
+      <div style="margin-top:20px; color:#666; font-size:12px; cursor:pointer;" onclick="toggleAuth('signup')">تسجيل جديد</div>
+    </div>
+
+    <div id="signupForm" class="hidden">
+      <input type="text" id="signUser" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="اسم مستخدم جديد">
+      <input type="password" id="signPass" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="كلمة المرور">
+      <button onclick="attemptSignup()" style="width:100%; padding:15px; background:#333; color:white; border:none; border-radius:30px; font-weight:bold; cursor:pointer; margin-top:10px;">إنشاء</button>
+      <div style="margin-top:20px; color:#666; font-size:12px; cursor:pointer;" onclick="toggleAuth('login')">رجوع</div>
+    </div>
+    
+    <p id="authMsg" style="color:#ff4444; margin-top:15px; font-size:12px; height:20px;"></p>
+  </div>
+</div>
+
+<!-- PAGE: CHAT -->
+<div id="chat" class="page active">
+  <div class="chat-container">
+    <div class="messages" id="msgContainer"></div>
+    <div class="input-box">
+      <input type="text" id="chatInput" placeholder="اكتب رسالتك... (مثال: ارسم لوحة فنية)" onkeypress="if(event.key==='Enter') sendChat()">
+      <button class="action-btn" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: CODER -->
+<div id="coder" class="page">
+  <div class="coder-container">
+    <div class="coder-hero">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:bold; color:#fff;"><i class="fas fa-laptop-code" style="color:var(--primary)"></i> Web Architect</span>
+        <span id="progText" style="font-size:10px; color:var(--primary); font-family:monospace;">IDLE</span>
+      </div>
+      <div class="prompt-wrapper">
+        <input type="text" id="codePrompt" class="coder-input" placeholder="صف الموقع (مثال: صفحة هبوط شخصية مع أزرار نيون)">
+        <button class="coder-btn" onclick="generateWebsite()"><span>بدء</span> <i class="fas fa-bolt"></i></button>
+      </div>
+      <div class="loading-bar" id="progBar"><div class="bar-fill" id="progFill"></div></div>
+    </div>
+    
+    <div class="coder-workspace">
+      <div class="code-pane">
+        <div class="pane-header"><span>Code</span> <i class="fas fa-code"></i></div>
+        <textarea id="codeOutput" style="width:100%; height:100%; background:#000; color:#0f0; border:none; padding:15px; font-family:monospace; resize:none;" spellcheck="false" placeholder="// Code will appear here..."></textarea>
+      </div>
+      <div class="preview-pane">
+        <div class="pane-header">
+          <span>Preview</span> 
+          <i class="fas fa-download" onclick="downloadSite()" style="cursor:pointer; color:#fff;"></i>
+        </div>
+        <iframe id="previewFrame" style="width:100%; height:100%; background:white; border:none;"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: ADMIN -->
+<div id="admin" class="page">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-num" id="statUsers">0</div><div style="font-size:12px; color:#888;">المستخدمين</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--primary);">99%</div><div style="font-size:12px; color:#888;">الصحة</div></div>
+    <div class="stat-card"><div class="stat-num" id="statMsgs">0</div><div style="font-size:12px; color:#888;">الرسائل</div></div>
+  </div>
+
+  <div class="admin-section">
+    <h3><i class="fas fa-shield-alt"></i> التحكم</h3>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span>وضع الصيانة (Maintenance)</span>
+      <input type="checkbox" id="maintCheck" onchange="toggleMaint(this)">
+    </div>
+  </div>
+
+  <div class="admin-section">
+    <h3><i class="fas fa-users"></i> المستخدمين</h3>
+    <div class="table-responsive">
+      <table class="user-table">
+        <thead><tr><th>المستخدم</th><th>الحالة</th><th>إجراء</th></tr></thead>
+        <tbody id="adminUserTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="admin-section">
+    <h3><i class="fas fa-palette"></i> المظهر</h3>
+    <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
+      <span>لون النظام:</span> <input type="color" id="primaryColorPick" value="#00ff88">
+    </div>
+    <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
+      <span>الخلفية:</span> <input type="color" id="bgColorPick" value="#050505">
+    </div>
+    <button onclick="saveTheme()" style="background:var(--primary); border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">حفظ</button>
+    <button onclick="resetTheme()" style="background:#333; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">استعادة</button>
+  </div>
+  
+  <div class="admin-section">
+    <h3><i class="fas fa-bullhorn"></i> الشريط الإخباري</h3>
+    <input type="text" id="tickerInput" style="width:100%; background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:5px;" placeholder="اكتب النص هنا...">
+    <button onclick="saveTicker()" style="margin-top:10px; background:var(--primary); border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">تحديث</button>
+  </div>
+</div>
 
 <!-- Footer Ticker -->
 <div class="footer-ticker">
   <div class="ticker-wrap">
-    <div class="ticker-move" id="tickerText">مرحباً بك في نظام NOSS AI المركزي... النظام يعمل بكفاءة تامة...</div>
+    <div class="ticker-move" id="tickerText">WELCOME TO NOSS AI V1.3 - SYSTEM ONLINE...</div>
   </div>
 </div>
-
-<!-- === Auth Screen === -->
-<div id="authScreen" class="auth-modal">
-  <div class="auth-box">
-    <h1 style="font-size: 30px; margin-bottom: 5px;">NOSS <span style="color:var(--primary)">ACCESS</span></h1>
-    <p style="color:#666; margin-bottom: 25px; font-size:12px;">نظام التعريف الآمن</p>
-    <div id="loginForm">
-      <input type="text" id="loginUser" class="auth-input" placeholder="اسم المستخدم">
-      <input type="password" id="loginPass" class="auth-input" placeholder="كلمة المرور">
-      <button class="gen-btn-lg" style="margin-top:10px;" onclick="attemptLogin()">دخول للنظام</button>
-      <div style="margin-top:15px;color:var(--secondary);cursor:pointer;font-size:12px;" onclick="toggleAuth('signup')">إنشاء هوية جديدة</div>
-    </div>
-    <div id="signupForm" style="display:none;">
-      <input type="text" id="signUser" class="auth-input" placeholder="اسم مستخدم جديد">
-      <input type="password" id="signPass" class="auth-input" placeholder="كلمة المرور">
-      <button class="gen-btn-lg" style="margin-top:10px; background:#444;" onclick="attemptSignup()">إنشاء</button>
-      <div style="margin-top:15px;color:var(--secondary);cursor:pointer;font-size:12px;" onclick="toggleAuth('login')">رجوع</div>
-    </div>
-    <p id="authMsg" style="color:#ff4444; margin-top:10px; font-size:12px; height:15px;"></p>
-  </div>
-</div>
-
-<!-- === Admin Page === -->
-<div id="admin" class="page">
-  <div class="admin-section">
-    <h3><i class="fas fa-users"></i> إدارة المستخدمين</h3>
-    <table class="user-list">
-      <thead><tr><th>المستخدم</th><th>الحالة</th><th>إجراء</th></tr></thead>
-      <tbody id="usersTableBody"></tbody>
-    </table>
-  </div>
-  
-  <div class="admin-section">
-    <h3><i class="fas fa-paint-brush"></i> تخصيص الموقع</h3>
-    <div class="setting-row">
-      <span>لون النظام (Primary):</span>
-      <input type="color" id="primaryColorPick" class="color-picker" value="#00ff88">
-    </div>
-    <div class="setting-row">
-      <span>لون الخلفية (Background):</span>
-      <input type="color" id="bgColorPick" class="color-picker" value="#000000">
-    </div>
-    <button class="gen-btn-lg" style="width:200px; font-size:14px;" onclick="saveTheme()">حفظ الألوان</button>
-    <button onclick="resetTheme()" style="background:#333; color:white; border:none; padding:10px 20px; border-radius:20px; cursor:pointer;">استعادة الافتراضي</button>
-  </div>
-
-  <div class="admin-section">
-    <h3><i class="fas fa-bullhorn"></i> الشريط الإخباري (أسفل الموقع)</h3>
-    <input type="text" id="adminTickerInput" class="gen-input" placeholder="اكتب النص الذي سيظهر للجميع هنا...">
-    <button class="gen-btn-lg" style="width:200px; font-size:14px;" onclick="saveTicker()">تحديث النص</button>
-  </div>
-</div>
-
-<!-- === Chat Page === -->
-<div id="chat" class="page active">
-  <div class="chat-container">
-    <div class="chat-header"><span><i class="fas fa-circle" style="color:var(--primary);font-size:10px;"></i> النظام</span><span style="cursor:pointer;color:#ff4444;font-size:12px;" onclick="clearMemory()">مسح</span></div>
-    <div class="messages" id="msgContainer"></div>
-    <div class="input-box"><input type="text" id="chatInput" placeholder="..." onkeypress="if(event.key==='Enter') sendChat()"><button class="action-btn" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button></div>
-  </div>
-</div>
-
-<!-- === Coder Page === -->
-<div id="coder" class="page">
-  <div class="coder-container">
-    <div class="generator-box" style="padding:15px; flex:0; display:flex; flex-direction:column; gap:10px;">
-      <div class="coder-input-group">
-        <input type="text" id="codePrompt" class="gen-input" style="margin:0; text-align:right; flex:1;" placeholder="وصف الموقع...">
-        <button class="action-btn" style="border-radius:10px; width:120px;" onclick="generateWebsite()">تنفيذ</button>
-      </div>
-    </div>
-    <div class="coder-split">
-      <div class="coder-editor"><textarea id="codeOutput" spellcheck="false" placeholder="// Code..."></textarea></div>
-      <div class="coder-preview">
-        <div class="coder-header"><button onclick="updatePreview()">تحديث</button><button onclick="downloadWebsite()">تحميل</button></div>
-        <div id="codeLoader" class="loader-overlay"><div class="spinner"></div></div>
-        <iframe id="previewFrame"></iframe>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- === Video & Image Pages (Simplified for brevity, same functionality) === -->
-<div id="video" class="page"><div class="generator-box"><h1>فيديو</h1><input type="text" id="vidPrompt" class="gen-input"><div id="vidLoader" class="loader-overlay"><div class="spinner"></div></div><video id="vidResult" class="media-result" controls></video><button class="gen-btn-lg" onclick="createVideo()">إنشاء</button></div></div>
-<div id="image" class="page"><div class="generator-box"><h1>صور 8K</h1><input type="text" id="imgPrompt" class="gen-input"><div id="imgLoader" class="loader-overlay"><div class="spinner"></div></div><img id="imgResult" class="media-result"><button class="gen-btn-lg" onclick="createImage()">توليد</button></div></div>
 
 <script>
-// === CONFIGURATION ===
-const DB_NAME = 'noss_users_v2';
-const SETTINGS_KEY = 'noss_settings';
+/* === LOGIC CORE === */
+const DB_NAME = 'noss_users_v13';
+const SETTINGS_KEY = 'noss_settings_v13';
+const ADMINS = { 'NOSS': 'CVkaka@7', 'L7AJ': 'l7ajtop1' };
 
-// Hardcoded Admins (Plaintext check for simulation simplicity as requested)
-// User: l7ajtop1, Pass: L7AJ
-const ADMINS = {
-  'NOSS': 'CVkaka@7',
-  'L7AJ': 'l7ajtop1'
-};
+let currentUser = null, isAdmin = false;
 
-let currentUser = null;
-let isAdmin = false;
-let chatMemory = [];
-
-// === INIT ===
 function init() {
-  applySettings(); // Load colors/text immediately
+  applyTheme();
   const session = localStorage.getItem('noss_session');
   if(session) {
     currentUser = session;
-    // Check if current user is admin
-    if(ADMINS[currentUser]) isAdmin = true;
+    isAdmin = !!ADMINS[currentUser];
+    if(!isAdmin && isMaintenance()) {
+      localStorage.removeItem('noss_session');
+      alert("System Under Maintenance");
+      location.reload();
+      return;
+    }
     loginSuccess();
   } else {
     document.getElementById('authScreen').style.display = 'flex';
   }
 }
 
-// === AUTHENTICATION ===
+/* === AUTH === */
 function getUsersDB() { return JSON.parse(localStorage.getItem(DB_NAME) || '{}'); }
-function hash(s) { return btoa(s).split('').reverse().join(''); }
+function isMaintenance() { return (JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')).maint === true; }
 
 function attemptLogin() {
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value.trim();
   const msg = document.getElementById('authMsg');
-
-  // 1. Check Admin Credentials directly
-  if (ADMINS[u] && ADMINS[u] === p) {
-    currentUser = u;
-    isAdmin = true;
-    localStorage.setItem('noss_session', u);
-    loginSuccess();
-    return;
-  }
-
-  // 2. Check Regular Users
+  
+  if(!ADMINS[u] && isMaintenance()) return msg.innerText = "النظام مغلق للصيانة";
+  
+  if(ADMINS[u] && ADMINS[u] === p) return completeLogin(u, true);
+  
   const db = getUsersDB();
-  if (db[u] && db[u] === hash(p)) {
-    currentUser = u;
-    isAdmin = false;
-    localStorage.setItem('noss_session', u);
-    loginSuccess();
-  } else {
-    msg.innerText = 'بيانات خاطئة';
-  }
+  if(db[u] && db[u] === btoa(p)) return completeLogin(u, false);
+  
+  msg.innerText = "بيانات خاطئة";
 }
 
 function attemptSignup() {
+  if(isMaintenance()) return alert("التسجيل مغلق");
   const u = document.getElementById('signUser').value.trim();
   const p = document.getElementById('signPass').value.trim();
   const db = getUsersDB();
   
-  if(u.length < 3) return alert('الاسم قصير جداً');
-  if(ADMINS[u]) return alert('هذا الاسم محجوز للإدارة');
-  if(db[u]) return alert('الاسم مستخدم مسبقاً');
+  if(u.length < 3 || ADMINS[u] || db[u]) return alert("الاسم غير صالح أو مستخدم");
   
-  db[u] = hash(p);
+  db[u] = btoa(p);
   localStorage.setItem(DB_NAME, JSON.stringify(db));
-  currentUser = u;
-  isAdmin = false;
+  completeLogin(u, false);
+}
+
+function completeLogin(u, admin) {
+  currentUser = u; isAdmin = admin;
   localStorage.setItem('noss_session', u);
   loginSuccess();
 }
@@ -376,158 +454,178 @@ function loginSuccess() {
   document.getElementById('authScreen').style.display = 'none';
   document.getElementById('deskUser').innerText = currentUser;
   document.getElementById('mobUser').innerText = currentUser;
-  
-  // Show Admin Button if Admin
   if(isAdmin) {
     document.getElementById('adminBtn').style.display = 'flex';
-    document.getElementById('deskUser').style.color = '#ff4444'; // Admin gets red name
-    loadAdminPanel();
+    document.getElementById('deskUser').style.color = '#ff4444';
+    updateAdminStats();
   }
-  
   loadChat();
 }
 
 function logout() { localStorage.removeItem('noss_session'); location.reload(); }
 function toggleAuth(m) {
-  document.getElementById('loginForm').style.display = m==='login'?'block':'none';
-  document.getElementById('signupForm').style.display = m==='signup'?'block':'none';
+  document.getElementById('loginForm').classList.toggle('hidden', m!=='login');
+  document.getElementById('signupForm').classList.toggle('hidden', m!=='signup');
+  document.getElementById('authMsg').innerText='';
 }
 
-// === ADMIN SYSTEM ===
-function loadAdminPanel() {
+/* === CHAT === */
+function loadChat() {
+  const mem = JSON.parse(localStorage.getItem(`chat_${currentUser}`) || '[]');
+  const c = document.getElementById('msgContainer');
+  c.innerHTML = '<div class="msg ai"><strong>NOSS:</strong> مرحباً، النظام جاهز V1.3.</div>';
+  mem.forEach(m => addMsg(m.role, m.content));
+}
+
+function addMsg(role, text) {
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  d.innerHTML = role === 'ai' ? `<strong>NOSS:</strong> ${text}` : text;
+  const c = document.getElementById('msgContainer');
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+async function sendChat() {
+  const inp = document.getElementById('chatInput');
+  const txt = inp.value.trim();
+  if(!txt) return;
+  inp.value = '';
+  addMsg('user', txt);
+  saveMsg('user', txt);
+  
+  const loadId = 'load'+Date.now();
+  const loader = document.createElement('div');
+  loader.className = 'msg ai';
+  loader.id = loadId;
+  loader.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> معالجة...';
+  document.getElementById('msgContainer').appendChild(loader);
+  
+  try {
+    const lower = txt.toLowerCase();
+    if(lower.includes('ارسم') || lower.includes('صورة') || lower.includes('image')) {
+      const prompt = txt.replace(/ارسم|صورة|image/gi, '').trim() || 'cyberpunk city';
+      const seed = Math.floor(Math.random()*9999);
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=600&nologo=true&seed=${seed}`;
+      const content = `تفضل:<br><img src="${url}" class="chat-image" onload="document.getElementById('msgContainer').scrollTop=99999">`;
+      document.getElementById(loadId).remove();
+      addMsg('ai', content); saveMsg('ai', content);
+    } else {
+      const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(txt + " (Reply in Arabic)")}`).then(r=>r.text());
+      document.getElementById(loadId).remove();
+      addMsg('ai', res); saveMsg('ai', res);
+    }
+  } catch(e) { document.getElementById(loadId).innerText = "خطأ في الاتصال"; }
+}
+
+function saveMsg(role, content) {
+  const k = `chat_${currentUser}`;
+  const mem = JSON.parse(localStorage.getItem(k) || '[]');
+  mem.push({role, content});
+  if(mem.length>30) mem.shift();
+  localStorage.setItem(k, JSON.stringify(mem));
+  if(isAdmin) updateAdminStats();
+}
+
+/* === CODER === */
+async function generateWebsite() {
+  const p = document.getElementById('codePrompt').value;
+  if(!p) return alert("اكتب وصفاً");
+  
+  const bar = document.getElementById('progBar');
+  const fill = document.getElementById('progFill');
+  const txt = document.getElementById('progText');
+  
+  bar.style.display='block'; fill.style.width='10%'; txt.innerText='INITIALIZING...';
+  
+  setTimeout(() => { fill.style.width='50%'; txt.innerText='BUILDING_LAYOUT...'; }, 800);
+  
+  try {
+    let code = await fetch(`https://text.pollinations.ai/${encodeURIComponent('Create HTML/CSS/JS website: '+p)}?model=openai`).then(r=>r.text());
+    code = code.replace(/```html/g,'').replace(/```/g,'');
+    
+    fill.style.width='100%'; txt.innerText='COMPLETE';
+    document.getElementById('codeOutput').value = code;
+    const d = document.getElementById('previewFrame').contentWindow.document;
+    d.open(); d.write(code); d.close();
+    
+    setTimeout(() => { bar.style.display='none'; fill.style.width='0%'; }, 2000);
+  } catch(e) { txt.innerText='ERROR'; fill.style.background='red'; }
+}
+
+function downloadSite() {
+  const b = new Blob([document.getElementById('codeOutput').value], {type:'text/html'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download='site.html'; a.click();
+}
+
+/* === ADMIN === */
+function updateAdminStats() {
   if(!isAdmin) return;
   const db = getUsersDB();
-  const tbody = document.getElementById('usersTableBody');
-  tbody.innerHTML = '';
+  let msgs = 0;
+  Object.keys(localStorage).forEach(k => { if(k.startsWith('chat_')) msgs += JSON.parse(localStorage.getItem(k)).length; });
   
-  Object.keys(db).forEach(user => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${user}</td>
-      <td style="color:#00ff88">User</td>
-      <td><button class="delete-btn" onclick="deleteUser('${user}')">حذف</button></td>
-    `;
-    tbody.appendChild(tr);
+  document.getElementById('statUsers').innerText = Object.keys(db).length;
+  document.getElementById('statMsgs').innerText = msgs;
+  
+  const tb = document.getElementById('adminUserTable'); tb.innerHTML='';
+  Object.keys(db).forEach(u => {
+    tb.innerHTML += `<tr><td>${u}</td><td style="color:#00ff88">Active</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="delUser('${u}')"></i></td></tr>`;
   });
-
-  // Load current ticker text into input
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  if(settings.ticker) document.getElementById('adminTickerInput').value = settings.ticker;
+  
+  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  if(s.ticker) document.getElementById('tickerInput').value = s.ticker;
+  document.getElementById('maintCheck').checked = !!s.maint;
 }
 
-function deleteUser(user) {
-  if(!confirm(`هل أنت متأكد من حذف حساب ${user}؟`)) return;
-  const db = getUsersDB();
-  delete db[user];
-  localStorage.setItem(DB_NAME, JSON.stringify(db));
-  loadAdminPanel();
+function delUser(u) {
+  if(confirm('حذف؟')) {
+    const db = getUsersDB(); delete db[u]; localStorage.setItem(DB_NAME, JSON.stringify(db));
+    updateAdminStats();
+  }
 }
 
 function saveTheme() {
   const p = document.getElementById('primaryColorPick').value;
   const b = document.getElementById('bgColorPick').value;
-  
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  settings.primary = p;
-  settings.bg = b;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  applySettings();
-  alert('تم حفظ الألوان!');
-}
-
-function resetTheme() {
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  delete settings.primary;
-  delete settings.bg;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  location.reload();
+  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  s.primary = p; s.bg = b;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  applyTheme();
 }
 
 function saveTicker() {
-  const txt = document.getElementById('adminTickerInput').value;
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  settings.ticker = txt;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  applySettings();
-  alert('تم تحديث الشريط الإخباري');
+  const t = document.getElementById('tickerInput').value;
+  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  s.ticker = t;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  applyTheme();
 }
 
-function applySettings() {
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  const root = document.documentElement;
-  
-  if(settings.primary) root.style.setProperty('--primary', settings.primary);
-  if(settings.bg) root.style.setProperty('--bg-color', settings.bg);
-  
-  if(settings.ticker) {
-    document.getElementById('tickerText').innerText = settings.ticker;
-  }
+function toggleMaint(el) {
+  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  s.maint = el.checked;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 }
 
-// === PAGE NAV ===
+function resetTheme() {
+  localStorage.removeItem(SETTINGS_KEY);
+  location.reload();
+}
+
+function applyTheme() {
+  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  if(s.primary) document.documentElement.style.setProperty('--primary', s.primary);
+  if(s.bg) document.documentElement.style.setProperty('--bg-color', s.bg);
+  if(s.ticker) document.getElementById('tickerText').innerText = s.ticker;
+}
+
 function setPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   event.currentTarget.classList.add('active');
-}
-
-// === CHAT & AI (Standard Features) ===
-function loadChat() {
-  chatMemory = JSON.parse(localStorage.getItem(`mem_${currentUser}`) || '[]');
-  const c = document.getElementById('msgContainer'); c.innerHTML='';
-  chatMemory.forEach(m => addMsgHTML(m.role, m.content));
-}
-function addMsgHTML(role, txt) {
-  const d = document.createElement('div'); d.className = `msg ${role}`; d.innerHTML = txt;
-  const c = document.getElementById('msgContainer'); c.appendChild(d); c.scrollTop=c.scrollHeight;
-}
-function clearMemory() { chatMemory=[]; localStorage.removeItem(`mem_${currentUser}`); loadChat(); }
-async function sendChat() {
-  const i = document.getElementById('chatInput'); const t = i.value.trim(); if(!t) return;
-  addMsgHTML('user', t); i.value=''; chatMemory.push({role:'user',content:t});
-  const l = document.createElement('div'); l.className='msg ai'; l.innerHTML='...'; 
-  document.getElementById('msgContainer').appendChild(l);
-  try {
-    const r = await fetch(`https://text.pollinations.ai/${encodeURIComponent('Reply in Arabic. User:'+t)}`).then(res=>res.text());
-    l.remove(); addMsgHTML('ai', r); chatMemory.push({role:'ai',content:r});
-    localStorage.setItem(`mem_${currentUser}`, JSON.stringify(chatMemory));
-  } catch(e) { l.innerText='Error'; }
-}
-
-// === CODER ===
-async function generateWebsite() {
-  const p = document.getElementById('codePrompt').value; if(!p) return alert('صف الموقع');
-  document.getElementById('codeLoader').style.display='flex';
-  try {
-    let c = await fetch(`https://text.pollinations.ai/${encodeURIComponent('Create single file HTML website for: '+p)}?model=openai`).then(r=>r.text());
-    c = c.replace(/```html/g,'').replace(/```/g,'');
-    const wm = `<a href="https://noss-sns.github.io/NOSS-AI/" target="_blank" style="position:fixed;bottom:10px;right:10px;z-index:9999;background:rgba(0,0,0,0.8);color:var(--primary);padding:5px;border-radius:5px;text-decoration:none;">NOSS</a>`;
-    document.getElementById('codeOutput').value = c + (c.includes('</body>')?wm:'');
-    updatePreview();
-  } catch(e){ alert('Error'); }
-  document.getElementById('codeLoader').style.display='none';
-}
-function updatePreview() {
-  const d = document.getElementById('previewFrame').contentWindow.document;
-  d.open(); d.write(document.getElementById('codeOutput').value); d.close();
-}
-function downloadWebsite() {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([document.getElementById('codeOutput').value], {type:'text/html'}));
-  a.download = 'site.html'; a.click();
-}
-
-// === MEDIA ===
-async function createImage() { /* ... Same as before ... */ 
-  const p = document.getElementById('imgPrompt').value; if(!p) return;
-  document.getElementById('imgLoader').style.display='flex';
-  const i = document.getElementById('imgResult'); i.style.display='none';
-  i.onload=()=>{document.getElementById('imgLoader').style.display='none';i.style.display='block';};
-  i.src=`https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=1024&height=1024&nologo=true&seed=${Math.random()}`;
-}
-async function createVideo() { /* ... Same as before ... */
-  alert("محرك الفيديو يعمل (تم الاختصار للكود للحفاظ على الطول)");
+  if(id==='admin') updateAdminStats();
 }
 
 init();
