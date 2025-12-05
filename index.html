@@ -4,631 +4,405 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#000000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>NOSS AI - The Core V1.3</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;800;900&display=swap" rel="stylesheet">
+<title>NOSS AI - V1.3 Root</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
   :root {
-    --bg-color: #050505;
-    --primary: #00ff88;
-    --primary-dim: rgba(0, 255, 136, 0.2);
-    --secondary: #00ccff;
+    --bg: #050505;
+    --prim: #00ff88;
+    --sec: #00ccff;
+    --dev: #ff0055;
     --text: #e0e0e0;
-    --border: rgba(255, 255, 255, 0.08);
-    --glass: rgba(10, 10, 10, 0.7);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
-    --safe-bottom: env(safe-area-inset-bottom);
-    --header-h: 70px;
-    --nav-mobile-h: 60px;
+    --glass: rgba(10, 10, 10, 0.9);
+    --border: 1px solid rgba(255, 255, 255, 0.1);
+    --safe: env(safe-area-inset-bottom);
   }
 
-  * {margin:0;padding:0;box-sizing:border-box; -webkit-tap-highlight-color: transparent; outline: none; scrollbar-width: thin; scrollbar-color: var(--primary) #111;}
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
-  ::-webkit-scrollbar-track { background: #111; }
+  * {margin:0;padding:0;box-sizing:border-box;outline:none;-webkit-tap-highlight-color:transparent;}
+  body {background:var(--bg);color:var(--text);font-family:'Tajawal';height:100dvh;overflow:hidden;background-image:radial-gradient(circle at 50% 50%,#111 0%,#000 100%);transition:background 0.5s;}
 
-  body {
-    background-color: var(--bg-color);
-    color: var(--text);
-    font-family: 'Tajawal', sans-serif;
-    height: 100vh;
-    height: 100dvh; /* Mobile fix */
-    overflow: hidden; /* Prevent body scroll, handle inside pages */
-    transition: background 0.5s ease;
-    background-image: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+  /* --- ANTI-DDOS SCREEN --- */
+  #ddos {
+    position:fixed;inset:0;background:#000;z-index:99999;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;transition:opacity 0.5s;
   }
+  .shield {font-size:60px;color:var(--prim);animation:pulse 1s infinite;margin-bottom:20px;}
+  .load-bar {width:200px;height:4px;background:#222;border-radius:2px;overflow:hidden;margin-top:20px;}
+  .fill {width:0%;height:100%;background:var(--prim);animation:load 2.5s forwards;}
+  @keyframes load{to{width:100%;}}
+  @keyframes pulse{50%{transform:scale(1.1);opacity:0.8;}}
 
-  /* === MAX EFFECTS === */
-  /* 1. Scanlines & Flicker */
-  .scanlines {
-    position: fixed; inset: 0; pointer-events: none; z-index: 9999;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-    background-size: 100% 4px;
-    animation: scanline 10s linear infinite;
-    opacity: 0.3;
-  }
-  .overlay-flicker {
-    position: fixed; inset: 0; pointer-events: none; z-index: 9998;
-    background: rgba(0, 255, 136, 0.02);
-    opacity: 0; animation: flicker 4s infinite;
-  }
-  @keyframes scanline { from {background-position: 0 0;} to {background-position: 0 100%;} }
-  @keyframes flicker { 0%,100% {opacity:0;} 5% {opacity:0.1;} 10% {opacity:0;} }
-
-  /* 2. Cyber Grid Background */
-  .cyber-grid {
-    position: fixed; top: 0; left: 0; width: 200vw; height: 200vh;
-    background-image: 
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 50px 50px;
-    transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-200px);
-    animation: gridMove 20s linear infinite;
-    opacity: 0.2; z-index: -1; pointer-events: none;
-  }
-  @keyframes gridMove { 0% {transform: perspective(500px) rotateX(60deg) translateY(0) translateZ(-200px);} 100% {transform: perspective(500px) rotateX(60deg) translateY(50px) translateZ(-200px);} }
-
-  /* 3. Neon Text */
-  .neon-text { text-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary-dim); }
-  
-  /* === NAVIGATION === */
+  /* HEADER & NAV */
   nav {
-    position: fixed; top: 0; width: 100%; height: var(--header-h); z-index: 1000;
-    background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
-    border-bottom: var(--glass-border);
-    display: flex; align-items: center; justify-content: space-between; padding: 0 25px;
-    box-shadow: 0 5px 30px rgba(0,0,0,0.8);
+    position:fixed;top:0;width:100%;height:65px;z-index:1000;background:rgba(0,0,0,0.95);
+    border-bottom:var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;
   }
-  .logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 10px; }
-  .logo span { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+  .logo {font-size:22px;font-weight:900;}
+  .logo span {color:var(--prim);text-shadow:0 0 10px var(--prim);}
   
-  .nav-tabs { display: flex; gap: 10px; height: 100%; align-items: center; }
-  .nav-btn {
-    background: transparent; border: 1px solid transparent; color: #888; 
-    font-size: 14px; padding: 8px 20px; border-radius: 30px; cursor: pointer; 
-    transition: 0.3s; font-weight: bold; display: flex; align-items: center; gap: 8px;
-    position: relative; overflow: hidden;
+  .nav-btns {display:flex;gap:5px;}
+  .nb {
+    background:transparent;color:#888;border:1px solid transparent;padding:6px 15px;
+    border-radius:20px;cursor:pointer;font-size:12px;font-weight:bold;transition:0.3s;
+    display:flex;gap:6px;align-items:center;
   }
-  .nav-btn::before { content:''; position: absolute; inset:0; background: var(--primary); opacity:0; transition:0.3s; z-index:-1; }
-  .nav-btn.active { color: #000; border-color: var(--primary); box-shadow: 0 0 15px var(--primary); background: var(--primary); }
-  .nav-btn:hover:not(.active) { color: #fff; border-color: rgba(255,255,255,0.3); }
+  .nb.active {background:var(--prim);color:#000;box-shadow:0 0 10px var(--prim);}
+  #btnAdmin, #btnDev {display:none;} /* Hidden by default */
 
-  /* === MOBILE NAV === */
-  @media(max-width: 768px) {
-    nav { 
-      top: auto; bottom: 0; height: calc(var(--nav-mobile-h) + var(--safe-bottom)); 
-      padding: 10px 10px var(--safe-bottom);
-      border-top: var(--glass-border); border-bottom: none; 
-      justify-content: center; background: rgba(0,0,0,0.95);
-    }
-    .logo, .user-info { display: none; }
-    .nav-tabs { width: 100%; justify-content: space-between; }
-    .nav-btn { flex-direction: column; gap: 4px; font-size: 10px; flex: 1; padding: 5px 0; border-radius: 12px; border: none; }
-    .nav-btn i { font-size: 18px; margin-bottom: 2px; }
-    .nav-btn.active { background: transparent; color: var(--primary); box-shadow: none; text-shadow: 0 0 10px var(--primary); }
-    
-    .mobile-top {
-      position: fixed; top: 0; left: 0; width: 100%; padding: 15px 20px;
-      padding-top: max(15px, env(safe-area-inset-top));
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); 
-      border-bottom: var(--glass-border); z-index: 999;
-    }
-  }
-  @media(min-width: 769px) { .mobile-top { display: none; } }
+  /* MOBILE */
+  @media(max-width:768px){
+    nav {top:auto;bottom:0;justify-content:center;height:70px;border-top:var(--border);border-bottom:none;padding-bottom:var(--safe);}
+    .logo,.u-info {display:none;}
+    .nav-btns {width:100%;justify-content:space-evenly;}
+    .nb {flex-direction:column;font-size:10px;padding:5px;gap:2px;} .nb i{font-size:18px;}
+    .m-top {position:fixed;top:0;width:100%;padding:10px 15px;background:#000;border-bottom:var(--border);display:flex;justify-content:space-between;align-items:center;z-index:999;padding-top:env(safe-area-inset-top);}
+  } @media(min-width:769px){.m-top{display:none;}}
 
-  /* === PAGE LAYOUT === */
-  .page { 
-    position: absolute; top: var(--header-h); left: 0; width: 100%; 
-    height: calc(100dvh - var(--header-h) - 35px); /* Minus header & ticker */
-    padding: 20px; opacity: 0; visibility: hidden; transform: scale(0.95);
-    transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); overflow-y: auto; overflow-x: hidden;
+  /* PAGES */
+  .page {
+    position:absolute;top:65px;left:0;width:100%;height:calc(100dvh - 65px - 30px);
+    padding:15px;display:none;overflow-y:auto;overflow-x:hidden;
   }
-  @media(max-width: 768px) {
-    .page { 
-      top: 50px; /* Mobile header height */
-      height: calc(100dvh - 50px - var(--nav-mobile-h) - var(--safe-bottom) - 35px); /* Adjusted for mobile */
-    }
-  }
-  .page.active { opacity: 1; visibility: visible; transform: scale(1); }
+  .page.active {display:block;animation:in 0.3s ease;}
+  @media(max-width:768px){.page{top:50px;height:calc(100dvh - 50px - 70px - 30px);}}
+  @keyframes in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-  /* === CHAT UI === */
-  .chat-container {
-    background: rgba(15, 15, 15, 0.6); border: var(--glass-border); border-radius: 20px;
-    height: 100%; display: flex; flex-direction: column; overflow: hidden;
-    backdrop-filter: blur(10px); box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  /* COMPONENTS */
+  .card {background:rgba(255,255,255,0.03);border:var(--border);border-radius:15px;padding:15px;margin-bottom:15px;}
+  .card h3 {
+    color:var(--prim);border-bottom:1px solid #333;padding-bottom:10px;margin-bottom:15px;
+    font-size:14px;display:flex;align-items:center;gap:10px;
   }
-  .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-  .msg { 
-    max-width: 85%; padding: 12px 18px; border-radius: 18px; font-size: 15px; line-height: 1.5; 
-    position: relative; animation: slideUp 0.3s ease; word-wrap: break-word;
-  }
-  @keyframes slideUp { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
-  
-  .msg.user { align-self: flex-end; background: linear-gradient(135deg, #222, #333); border: 1px solid #444; color: #fff; border-bottom-left-radius: 4px; }
-  .msg.ai { align-self: flex-start; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); color: #ddd; border-bottom-right-radius: 4px; }
-  .msg.ai strong { color: var(--primary); }
-  
-  .input-box { 
-    padding: 15px; background: rgba(0,0,0,0.8); border-top: var(--glass-border); 
-    display: flex; gap: 10px; align-items: center; 
-  }
-  .input-box input {
-    flex: 1; background: #111; border: 1px solid #333; color: white; padding: 12px 20px; 
-    border-radius: 30px; font-size: 16px; transition: 0.3s;
-  }
-  .input-box input:focus { border-color: var(--primary); box-shadow: 0 0 15px var(--primary-dim); }
-  .action-btn {
-    width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--primary); 
-    color: #000; font-size: 18px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center;
-  }
-  .action-btn:hover { transform: scale(1.1); box-shadow: 0 0 15px var(--primary); }
+  .btn {width:100%;padding:10px;background:#222;color:#fff;border:1px solid #333;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:5px;}
+  .btn-p {background:var(--prim);color:#000;border:none;}
+  .inp {width:100%;background:#000;color:#fff;padding:10px;border:1px solid #333;border-radius:8px;margin-bottom:10px;}
 
-  /* === CODER UI === */
-  .coder-container { display: flex; flex-direction: column; gap: 15px; height: 100%; }
-  .coder-hero {
-    background: linear-gradient(to bottom, rgba(20,20,20,0.9), rgba(10,10,10,0.95));
-    border: var(--glass-border); border-radius: 15px; padding: 15px;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  .prompt-wrapper { display: flex; gap: 10px; background: #000; padding: 5px; border-radius: 30px; border: 1px solid #333; }
-  .coder-input { flex: 1; background: none; border: none; color: white; padding: 10px 15px; }
-  .coder-btn { 
-    background: var(--primary); border: none; border-radius: 25px; padding: 0 25px; 
-    font-weight: bold; cursor: pointer; color: black; display: flex; align-items: center; gap: 5px;
-  }
-  
-  .coder-workspace { display: flex; flex: 1; gap: 15px; overflow: hidden; }
-  .code-pane, .preview-pane { 
-    flex: 1; background: #080808; border: var(--glass-border); border-radius: 15px; 
-    display: flex; flex-direction: column; overflow: hidden; 
-  }
-  .pane-header { padding: 10px; background: #151515; border-bottom: 1px solid #222; font-size: 12px; color: #888; display: flex; justify-content: space-between; }
-  
-  @media(max-width: 768px) { .coder-workspace { flex-direction: column; } }
-  
-  /* === ADMIN UI === */
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
-  .stat-card { 
-    background: rgba(255,255,255,0.03); border: var(--glass-border); padding: 20px; 
-    border-radius: 15px; text-align: center; position: relative; overflow: hidden;
-  }
-  .stat-card::before { content:''; position: absolute; top:0; left:0; width:100%; height:3px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
-  .stat-num { font-size: 26px; font-weight: 900; color: #fff; margin: 5px 0; }
-  
-  .admin-section { background: rgba(0,0,0,0.4); border: var(--glass-border); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
-  .admin-section h3 { border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; color: var(--primary); }
-  
-  .user-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  /* Horizontal scroll for table on mobile */
-  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .user-table th { text-align: right; padding: 10px; color: #888; border-bottom: 1px solid #333; white-space: nowrap; }
-  .user-table td { padding: 10px; border-bottom: 1px solid #222; white-space: nowrap; }
-  
-  /* === AUTH & TICKER === */
-  .auth-modal { 
-    position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px);
-    display: flex; align-items: center; justify-content: center; padding: 20px;
-  }
-  .auth-box { 
-    background: #050505; border: 1px solid var(--primary); padding: 40px; border-radius: 20px; 
-    width: 100%; max-width: 400px; text-align: center; box-shadow: 0 0 50px rgba(0,255,136,0.15);
-  }
-  .footer-ticker {
-    position: fixed; bottom: 0; left: 0; width: 100%; height: 35px;
-    background: #000; border-top: 1px solid #222; z-index: 2000;
-    display: flex; align-items: center; padding-bottom: var(--safe-bottom);
-  }
-  @media(max-width: 768px) {
-    /* Push ticker above mobile nav */
-    .footer-ticker { bottom: calc(var(--nav-mobile-h) + var(--safe-bottom)); border-bottom: 1px solid #222; }
-  }
-  .ticker-move { display: inline-block; padding-left: 100%; animation: ticker 20s linear infinite; color: var(--primary); font-size: 13px; font-weight: bold; white-space: nowrap; }
-  @keyframes ticker { 0% {transform: translate3d(0,0,0);} 100% {transform: translate3d(-100%,0,0);} }
+  /* ADMIN SPECIFIC */
+  .stats-grid {display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:15px;text-align:center;}
+  .stat {background:#111;padding:10px;border-radius:10px;border:1px solid #222;}
+  .stat h2 {margin:0;font-size:24px;color:#fff;}
+  .stat span {font-size:10px;color:#888;}
+  .tbl {width:100%;font-size:12px;border-collapse:collapse;color:#ccc;}
+  .tbl th, .tbl td {text-align:right;padding:8px;border-bottom:1px solid #222;}
+  .tbl th {color:var(--prim);}
 
-  /* === UTILS === */
-  .hidden { display: none !important; }
-  #adminBtn { display: none; color: #ff4444 !important; }
-  .loading-bar { width: 100%; height: 3px; background: #222; margin-top: 10px; display: none; }
-  .bar-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; box-shadow: 0 0 10px var(--primary); }
+  /* CHAT */
+  .chat-box {height:100%;background:rgba(20,20,20,0.6);border:var(--border);border-radius:15px;display:flex;flex-direction:column;overflow:hidden;}
+  .msgs {flex:1;padding:15px;overflow-y:auto;display:flex;flex-direction:column;gap:15px;}
+  .msg {padding:10px 15px;border-radius:15px;font-size:14px;max-width:80%;word-wrap:break-word;}
+  .my-msg {align-self:flex-end;background:#222;border-bottom-left-radius:2px;}
+  .ai-msg {align-self:flex-start;background:rgba(0,255,136,0.1);color:#cfc;border-bottom-right-radius:2px;}
+  
+  .c-foot {padding:10px;background:#000;display:flex;gap:10px;align-items:center;border-top:var(--border);}
+  .ic-btn {width:40px;height:40px;border-radius:50%;background:#151515;color:#888;border:1px solid #333;display:flex;justify-content:center;align-items:center;cursor:pointer;}
+  .ic-btn.mic.on {color:#f00;border-color:#f00;animation:pulse 1s infinite;}
+
+  /* DEV */
+  .code-editor {width:100%;height:300px;background:#0a0a0a;color:#0f0;font-family:monospace;padding:15px;border:1px solid #333;border-radius:10px;resize:vertical;}
+
+  /* FOOTER */
+  .footer {position:fixed;bottom:0;width:100%;height:30px;background:#000;border-top:var(--border);display:flex;align-items:center;padding-bottom:var(--safe);z-index:900;}
+  @media(max-width:768px){.footer{bottom:70px;}}
+  .tick-txt {animation:tk 20s linear infinite;white-space:nowrap;padding-left:100%;color:var(--prim);font-size:11px;font-weight:700;}
+  @keyframes tk{100%{transform:translateX(-100%);}}
+
+  /* AUTH */
+  .auth-scr {position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:5000;display:flex;justify-content:center;align-items:center;}
+  .auth-card {width:300px;background:#080808;padding:30px;border-radius:20px;border:1px solid var(--prim);text-align:center;}
 </style>
 </head>
 <body>
 
-<div class="cyber-grid"></div>
-<div class="scanlines"></div>
-<div class="overlay-flicker"></div>
-
-<!-- Mobile Header -->
-<div class="mobile-top">
-  <div class="logo">NOSS <span class="neon-text">AI</span></div>
-  <div style="font-size:12px; color:#888;">
-    <span id="mobUser">Ghost</span>
-    <i class="fas fa-sign-out-alt" onclick="logout()" style="color:#ff4444; margin-right:10px;"></i>
-  </div>
+<!-- ANTI-DDOS FAKE LAYER -->
+<div id="ddos">
+  <div class="shield"><i class="fas fa-shield-alt"></i></div>
+  <h2 style="color:#fff;font-family:Arial;">NOSS PROTECTION</h2>
+  <div style="color:#666;font-size:12px;margin-top:5px;">Verifying connection security...</div>
+  <div class="load-bar"><div class="fill"></div></div>
 </div>
 
-<!-- Navigation -->
+<!-- TOP (Mobile) -->
+<div class="m-top">
+  <div class="logo">NOSS <span style="font-size:10px;">V1.3</span></div>
+  <i class="fas fa-sign-out-alt" onclick="out()" style="color:#f44;cursor:pointer;"></i>
+</div>
+
 <nav>
-  <div class="logo">NOSS <span class="neon-text">AI</span> <small style="font-size:10px;color:#666;margin-right:5px;letter-spacing:0">V1.3</small></div>
-  <div class="nav-tabs">
-    <button class="nav-btn active" onclick="setPage('chat')"><i class="fas fa-brain"></i> <span>القلب</span></button>
-    <button class="nav-btn" onclick="setPage('coder')"><i class="fas fa-code"></i> <span>المطور</span></button>
-    <button class="nav-btn" id="adminBtn" onclick="setPage('admin')"><i class="fas fa-shield-alt"></i> <span>الإدارة</span></button>
+  <div class="logo">NOSS <span>AI</span></div>
+  <div class="nav-btns">
+    <button class="nb active" onclick="go('chat')"><i class="fas fa-comment"></i> الشات</button>
+    <button class="nb" onclick="go('coder')"><i class="fas fa-laptop-code"></i> المطور</button>
+    <button class="nb" id="btnAdmin" onclick="go('admin')"><i class="fas fa-cogs"></i> الإدارة</button>
+    <button class="nb" id="btnDev" onclick="go('dev')"><i class="fas fa-terminal"></i> النواة</button>
   </div>
-  <div class="user-info">
-    <div style="text-align:left; line-height:1.2;">
-      <span id="deskUser" style="color:#fff; font-weight:bold; font-size:14px; display:block;">Ghost</span>
-      <span style="font-size:10px; color:var(--primary);">ONLINE</span>
-    </div>
-    <button onclick="logout()" style="background:#111; border:1px solid #333; color:#ff4444; padding:8px 12px; border-radius:10px; margin-right:10px; cursor:pointer;"><i class="fas fa-power-off"></i></button>
+  <div class="u-info" style="display:flex;align-items:center;gap:10px;">
+    <span id="usrNm" style="color:#fff;font-size:12px;font-weight:bold;">User</span>
+    <button onclick="out()" style="background:#222;border:none;color:#f44;padding:5px;border-radius:5px;cursor:pointer;"><i class="fas fa-power-off"></i></button>
   </div>
 </nav>
 
-<!-- Auth Screen -->
-<div id="authScreen" class="auth-modal">
-  <div class="auth-box">
-    <div style="margin-bottom:20px; font-size:40px; color:var(--primary); animation: pulse 2s infinite;"><i class="fas fa-fingerprint"></i></div>
-    <h1 style="font-size: 24px; margin-bottom: 5px;">SYSTEM <span class="neon-text">ACCESS</span></h1>
-    <p style="color:#666; margin-bottom: 25px; font-size:12px;">V1.3 Secure Login</p>
+<!-- AUTH -->
+<div id="auth" class="auth-scr">
+  <div class="auth-card">
+    <i class="fas fa-fingerprint" style="font-size:40px;color:var(--prim);margin-bottom:20px;"></i>
     
-    <div id="loginForm">
-      <input type="text" id="loginUser" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="اسم المستخدم">
-      <input type="password" id="loginPass" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="كلمة المرور">
-      <button onclick="attemptLogin()" style="width:100%; padding:15px; background:var(--primary); border:none; border-radius:30px; font-weight:bold; cursor:pointer; margin-top:10px;">دخول النظام</button>
-      <div style="margin-top:20px; color:#666; font-size:12px; cursor:pointer;" onclick="toggleAuth('signup')">تسجيل جديد</div>
+    <div id="logF">
+      <input type="email" id="le" class="inp" placeholder="Gmail Address">
+      <input type="password" id="lp" class="inp" placeholder="Password">
+      <button onclick="login()" class="btn btn-p">دخول</button>
+      <div style="color:#666;font-size:11px;margin-top:10px;cursor:pointer;" onclick="tAuth()">حساب جديد؟</div>
     </div>
 
-    <div id="signupForm" class="hidden">
-      <input type="text" id="signUser" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="اسم مستخدم جديد">
-      <input type="password" id="signPass" class="auth-input" style="width:100%; padding:15px; background:#000; border:1px solid #333; color:white; border-radius:10px; margin-bottom:10px; text-align:center;" placeholder="كلمة المرور">
-      <button onclick="attemptSignup()" style="width:100%; padding:15px; background:#333; color:white; border:none; border-radius:30px; font-weight:bold; cursor:pointer; margin-top:10px;">إنشاء</button>
-      <div style="margin-top:20px; color:#666; font-size:12px; cursor:pointer;" onclick="toggleAuth('login')">رجوع</div>
+    <div id="sigF" style="display:none;">
+      <input type="email" id="se" class="inp" placeholder="Your Gmail">
+      <input type="password" id="sp" class="inp" placeholder="New Password">
+      <button onclick="signup()" class="btn" style="background:#fff;color:#000;">إنشاء</button>
+      <div style="color:#666;font-size:11px;margin-top:10px;cursor:pointer;" onclick="tAuth()">رجوع</div>
     </div>
-    
-    <p id="authMsg" style="color:#ff4444; margin-top:15px; font-size:12px; height:20px;"></p>
   </div>
 </div>
 
-<!-- PAGE: CHAT -->
+<!-- PAGE 1: CHAT -->
 <div id="chat" class="page active">
-  <div class="chat-container">
-    <div class="messages" id="msgContainer"></div>
-    <div class="input-box">
-      <input type="text" id="chatInput" placeholder="اكتب رسالتك... (مثال: ارسم لوحة فنية)" onkeypress="if(event.key==='Enter') sendChat()">
-      <button class="action-btn" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+  <div class="chat-box">
+    <div class="msgs" id="cBox"><div class="msg ai-msg">مرحباً بك في النظام الآمن V1.3.</div></div>
+    <div class="c-foot">
+      <input type="file" id="fUl" hidden onchange="uF(this)">
+      <button class="ic-btn" onclick="document.getElementById('fUl').click()"><i class="fas fa-paperclip"></i></button>
+      <button class="ic-btn mic" id="mBtn" onclick="tMic()"><i class="fas fa-microphone"></i></button>
+      <input type="text" id="tx" class="inp" style="margin:0;border-radius:30px;" placeholder="اكتب..." onkeypress="if(event.key==='Enter')snd()">
+      <button class="ic-btn" style="background:var(--prim);color:#000;" onclick="snd()"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
 </div>
 
-<!-- PAGE: CODER -->
+<!-- PAGE 2: CODER -->
 <div id="coder" class="page">
-  <div class="coder-container">
-    <div class="coder-hero">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-weight:bold; color:#fff;"><i class="fas fa-laptop-code" style="color:var(--primary)"></i> Web Architect</span>
-        <span id="progText" style="font-size:10px; color:var(--primary); font-family:monospace;">IDLE</span>
-      </div>
-      <div class="prompt-wrapper">
-        <input type="text" id="codePrompt" class="coder-input" placeholder="صف الموقع (مثال: صفحة هبوط شخصية مع أزرار نيون)">
-        <button class="coder-btn" onclick="generateWebsite()"><span>بدء</span> <i class="fas fa-bolt"></i></button>
-      </div>
-      <div class="loading-bar" id="progBar"><div class="bar-fill" id="progFill"></div></div>
-    </div>
-    
-    <div class="coder-workspace">
-      <div class="code-pane">
-        <div class="pane-header"><span>Code</span> <i class="fas fa-code"></i></div>
-        <textarea id="codeOutput" style="width:100%; height:100%; background:#000; color:#0f0; border:none; padding:15px; font-family:monospace; resize:none;" spellcheck="false" placeholder="// Code will appear here..."></textarea>
-      </div>
-      <div class="preview-pane">
-        <div class="pane-header">
-          <span>Preview</span> 
-          <i class="fas fa-download" onclick="downloadSite()" style="cursor:pointer; color:#fff;"></i>
-        </div>
-        <iframe id="previewFrame" style="width:100%; height:100%; background:white; border:none;"></iframe>
-      </div>
-    </div>
+  <div class="card">
+    <input type="text" id="cp" class="inp" placeholder="صف الموقع المطلوب...">
+    <button onclick="bld()" class="btn btn-p">إنشاء الكود</button>
+  </div>
+  <div style="display:flex;height:400px;gap:10px;">
+    <textarea id="co" style="flex:1;background:#111;color:#0f0;padding:10px;border:1px solid #333;"></textarea>
+    <iframe id="cv" style="flex:1;background:#fff;border:none;"></iframe>
   </div>
 </div>
 
-<!-- PAGE: ADMIN -->
+<!-- PAGE 3: ADMIN (REBUILT AS REQUESTED) -->
 <div id="admin" class="page">
+  
+  <!-- 1. Stats -->
   <div class="stats-grid">
-    <div class="stat-card"><div class="stat-num" id="statUsers">0</div><div style="font-size:12px; color:#888;">المستخدمين</div></div>
-    <div class="stat-card"><div class="stat-num" style="color:var(--primary);">99%</div><div style="font-size:12px; color:#888;">الصحة</div></div>
-    <div class="stat-card"><div class="stat-num" id="statMsgs">0</div><div style="font-size:12px; color:#888;">الرسائل</div></div>
-  </div>
-
-  <div class="admin-section">
-    <h3><i class="fas fa-shield-alt"></i> التحكم</h3>
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <span>وضع الصيانة (Maintenance)</span>
-      <input type="checkbox" id="maintCheck" onchange="toggleMaint(this)">
+    <div class="stat">
+      <h2 id="cntU">0</h2>
+      <span>المستخدمين</span>
+    </div>
+    <div class="stat">
+      <h2 style="color:var(--prim);">99%</h2>
+      <span>الصحة</span>
+    </div>
+    <div class="stat">
+      <h2 id="cntM">0</h2>
+      <span>الرسائل</span>
     </div>
   </div>
 
-  <div class="admin-section">
+  <!-- 2. Maintenance -->
+  <div class="card">
+    <h3><i class="fas fa-tools"></i> التحكم</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span>وضع الصيانة (Maintenance)</span>
+      <input type="checkbox" id="mChk" onchange="sM(this)">
+    </div>
+  </div>
+
+  <!-- 3. Users Table -->
+  <div class="card">
     <h3><i class="fas fa-users"></i> المستخدمين</h3>
-    <div class="table-responsive">
-      <table class="user-table">
+    <div style="overflow-x:auto;">
+      <table class="tbl">
         <thead><tr><th>المستخدم</th><th>الحالة</th><th>إجراء</th></tr></thead>
-        <tbody id="adminUserTable"></tbody>
+        <tbody id="tBody"></tbody>
       </table>
     </div>
   </div>
 
-  <div class="admin-section">
-    <h3><i class="fas fa-palette"></i> المظهر</h3>
-    <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
-      <span>لون النظام:</span> <input type="color" id="primaryColorPick" value="#00ff88">
+  <!-- 4. Appearance -->
+  <div class="card">
+    <h3><i class="fas fa-paint-brush"></i> المظهر</h3>
+    <label>لون النظام:</label> <input type="color" id="cl1" class="inp" style="padding:2px;">
+    <label>الخلفية:</label> <input type="color" id="cl2" class="inp" style="padding:2px;">
+    <div style="display:flex;gap:10px;">
+      <button onclick="svCol()" class="btn btn-p">حفظ</button>
+      <button onclick="rsCol()" class="btn">استعادة</button>
     </div>
-    <div style="margin-bottom:10px; display:flex; justify-content:space-between;">
-      <span>الخلفية:</span> <input type="color" id="bgColorPick" value="#050505">
-    </div>
-    <button onclick="saveTheme()" style="background:var(--primary); border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">حفظ</button>
-    <button onclick="resetTheme()" style="background:#333; color:white; border:none; padding:5px 15px; border-radius:5px; cursor:pointer;">استعادة</button>
   </div>
-  
-  <div class="admin-section">
+
+  <!-- 5. Ticker -->
+  <div class="card">
     <h3><i class="fas fa-bullhorn"></i> الشريط الإخباري</h3>
-    <input type="text" id="tickerInput" style="width:100%; background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:5px;" placeholder="اكتب النص هنا...">
-    <button onclick="saveTicker()" style="margin-top:10px; background:var(--primary); border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">تحديث</button>
+    <input type="text" id="tk" class="inp" placeholder="اكتب النص هنا...">
+    <button onclick="svTk()" class="btn btn-p">تحديث</button>
   </div>
 </div>
 
-<!-- Footer Ticker -->
-<div class="footer-ticker">
-  <div class="ticker-wrap">
-    <div class="ticker-move" id="tickerText">WELCOME TO NOSS AI V1.3 - SYSTEM ONLINE...</div>
+<!-- PAGE 4: DEV (SYSTEM EDITOR) -->
+<div id="dev" class="page">
+  <div class="card" style="border-color:#f05;">
+    <h3 style="color:#f05;"><i class="fas fa-code"></i> System Kernel (Root Access)</h3>
+    <p style="font-size:12px;color:#888;">هذا هو كود الموقع بالكامل. التعديل هنا سيغير النظام فوراً.</p>
+    
+    <div style="display:flex;gap:5px;margin:10px 0;">
+      <button onclick="ldSys()" class="btn" style="width:auto;">سحب الكود</button>
+      <button onclick="svSys()" class="btn" style="width:auto;background:#f05;">حفظ وتطبيق</button>
+    </div>
+    
+    <textarea id="sysEd" class="code-editor" spellcheck="false"></textarea>
   </div>
 </div>
+
+<!-- FOOTER -->
+<div class="footer"><div class="tick-txt" id="footT">SYSTEM V1.3 ROOT ACCESS ONLINE...</div></div>
 
 <script>
-/* === LOGIC CORE === */
-const DB_NAME = 'noss_users_v13';
-const SETTINGS_KEY = 'noss_settings_v13';
-const ADMINS = { 'NOSS': 'CVkaka@7', 'L7AJ': 'l7ajtop1' };
+/* CORE DATA */
+const D='n13_d', S='n13_s', K='n_sess';
+const A={'NOSS':'CVkaka@7','L7AJ':'l7ajtop1','DEV':'admindev'};
+let U=null, R='';
 
-let currentUser = null, isAdmin = false;
+/* STARTUP */
+window.onload=()=>{
+  setTimeout(()=>{document.getElementById('ddos').style.opacity='0';setTimeout(()=>document.getElementById('ddos').style.display='none',500);run();},2200);
+};
 
-function init() {
-  applyTheme();
-  const session = localStorage.getItem('noss_session');
-  if(session) {
-    currentUser = session;
-    isAdmin = !!ADMINS[currentUser];
-    if(!isAdmin && isMaintenance()) {
-      localStorage.removeItem('noss_session');
-      alert("System Under Maintenance");
-      location.reload();
-      return;
+function run(){
+  loadTh();
+  if(localStorage.getItem(K)) {
+    U=localStorage.getItem(K);
+    R=A[U]?'A':(getD()[U]?.r||'U');
+    if(U==='DEV') R='D';
+    
+    if(R==='U' && getS().mnt) return (localStorage.removeItem(K),location.reload());
+    
+    document.getElementById('auth').style.display='none';
+    document.getElementById('usrNm').innerText=U.split('@')[0];
+    
+    if(R==='A'||R==='D') { 
+      document.getElementById('btnAdmin').style.display='flex';
+      uAdm();
     }
-    loginSuccess();
+    if(R==='D') { 
+      document.getElementById('btnDev').style.display='flex';
+      ldSys(); 
+    }
+    
+    loadC();
+  }
+}
+
+/* DATA HELPERS */
+function getD(){return JSON.parse(localStorage.getItem(D)||'{}')}
+function getS(){return JSON.parse(localStorage.getItem(S)||'{}')}
+function svS(s){localStorage.setItem(S,JSON.stringify(s)); loadTh();}
+
+/* AUTH */
+function login(){
+  let e=v('le'),p=v('lp');
+  if(A[e] && A[e]===p) return ok(e);
+  let d=getD();
+  if(d[e] && d[e].p===p) return ok(e);
+  alert('خطأ');
+}
+function signup(){
+  let e=v('se'),p=v('sp');
+  if(!e.includes('@gmail')) return alert('Gmail only');
+  if(A[e]||getD()[e]) return alert('موجود');
+  let d=getD(); d[e]={p:p,r:'U',j:Date.now()}; localStorage.setItem(D,JSON.stringify(d));
+  ok(e);
+}
+function ok(u){ localStorage.setItem(K,u); location.reload(); }
+function out(){ localStorage.removeItem(K); location.reload(); }
+function tAuth(){ let l=document.getElementById('logF'),s=document.getElementById('sigF'); if(l.style.display==='none'){l.style.display='block';s.style.display='none'}else{l.style.display='none';s.style.display='block'} }
+
+/* CHAT + MIC */
+async function snd(){
+  let t=v('tx'); if(!t)return;
+  addM('u',t); document.getElementById('tx').value=''; saveC('u',t);
+  
+  if(t.match(/صورة|image/)){
+    let u=`https://image.pollinations.ai/prompt/${encodeURIComponent(t)}`;
+    addM('ai',`<img src="${u}" style="width:100%;border-radius:10px;">`);
+    saveC('ai',`<img src="${u}">`);
   } else {
-    document.getElementById('authScreen').style.display = 'flex';
+    let r=await fetch(`https://text.pollinations.ai/${encodeURIComponent(t)}`).then(x=>x.text());
+    addM('ai',r); saveC('ai',r);
   }
 }
+function addM(w,t){ document.getElementById('cBox').innerHTML+=`<div class="msg ${w==='u'?'my-msg':'ai-msg'}">${t}</div>`; }
+function saveC(w,t){ let k='ch_'+U,h=JSON.parse(localStorage.getItem(k)||'[]');h.push({w,t});localStorage.setItem(k,JSON.stringify(h)); if(R!=='U')uAdm(); }
+function loadC(){ let h=JSON.parse(localStorage.getItem('ch_'+U)||'[]');h.forEach(m=>addM(m.w,m.t)); }
+function uF(i){ let r=new FileReader();r.onload=e=>{addM('u',`<img src="${e.target.result}" width="100%">`);};r.readAsDataURL(i.files[0]); }
 
-/* === AUTH === */
-function getUsersDB() { return JSON.parse(localStorage.getItem(DB_NAME) || '{}'); }
-function isMaintenance() { return (JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')).maint === true; }
+// Mic Logic
+let rc; try{let W=window.webkitSpeechRecognition;if(W){rc=new W();rc.lang='ar-SA';rc.onresult=e=>{document.getElementById('tx').value=e.results[0][0].transcript;};rc.onend=()=>document.getElementById('mBtn').classList.remove('on');}}catch(e){}
+function tMic(){ if(rc){let b=document.getElementById('mBtn'); if(b.classList.contains('on')){rc.stop()}else{rc.start();b.classList.add('on')}} else alert('غير مدعوم'); }
 
-function attemptLogin() {
-  const u = document.getElementById('loginUser').value.trim();
-  const p = document.getElementById('loginPass').value.trim();
-  const msg = document.getElementById('authMsg');
+/* ADMIN */
+function uAdm(){
+  let d=getD(), s=getS();
+  let msgs=0; Object.keys(localStorage).forEach(k=>{if(k.startsWith('ch_'))msgs+=JSON.parse(localStorage.getItem(k)).length});
   
-  if(!ADMINS[u] && isMaintenance()) return msg.innerText = "النظام مغلق للصيانة";
+  document.getElementById('cntU').innerText=Object.keys(d).length;
+  document.getElementById('cntM').innerText=msgs;
+  document.getElementById('mChk').checked=!!s.mnt;
+  if(s.tk) document.getElementById('tk').value=s.tk;
   
-  if(ADMINS[u] && ADMINS[u] === p) return completeLogin(u, true);
-  
-  const db = getUsersDB();
-  if(db[u] && db[u] === btoa(p)) return completeLogin(u, false);
-  
-  msg.innerText = "بيانات خاطئة";
+  let h='';
+  for(let u in d) h+=`<tr><td>${u}</td><td>User</td><td><button onclick="kick('${u}')" style="color:red;border:none;background:none;">حذف</button></td></tr>`;
+  document.getElementById('tBody').innerHTML=h;
+}
+function kick(u){ if(confirm('حذف؟')){let d=getD();delete d[u];localStorage.setItem(D,JSON.stringify(d));uAdm();} }
+function sM(e){ let s=getS(); s.mnt=e.checked; svS(s); }
+function svTk(){ let s=getS(); s.tk=v('tk'); svS(s); }
+function svCol(){ let s=getS(); s.cp=v('cl1'); s.bg=v('cl2'); svS(s); }
+function rsCol(){ let s=getS(); delete s.cp; delete s.bg; svS(s); location.reload(); }
+function loadTh(){ 
+  let s=getS(),r=document.documentElement.style;
+  if(s.cp)r.setProperty('--prim',s.cp);
+  if(s.bg)r.setProperty('--bg',s.bg);
+  if(s.tk)document.getElementById('footT').innerText=s.tk;
 }
 
-function attemptSignup() {
-  if(isMaintenance()) return alert("التسجيل مغلق");
-  const u = document.getElementById('signUser').value.trim();
-  const p = document.getElementById('signPass').value.trim();
-  const db = getUsersDB();
-  
-  if(u.length < 3 || ADMINS[u] || db[u]) return alert("الاسم غير صالح أو مستخدم");
-  
-  db[u] = btoa(p);
-  localStorage.setItem(DB_NAME, JSON.stringify(db));
-  completeLogin(u, false);
+/* DEV (SYSTEM EDITOR) */
+function ldSys(){
+  // Gets the current live HTML of the page
+  document.getElementById('sysEd').value = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+}
+function svSys(){
+  if(!confirm('تطبيق التغييرات؟ قد يتوقف الموقع عن العمل إذا أخطأت.'))return;
+  document.open();
+  document.write(document.getElementById('sysEd').value);
+  document.close();
 }
 
-function completeLogin(u, admin) {
-  currentUser = u; isAdmin = admin;
-  localStorage.setItem('noss_session', u);
-  loginSuccess();
+/* CODER */
+async function bld(){
+  let p=v('cp');if(!p)return;
+  let c=await fetch(`https://text.pollinations.ai/html code for ${p}`).then(r=>r.text());
+  c=c.replace(/```html|```/g,'');
+  document.getElementById('co').value=c;
+  let d=document.getElementById('cv').contentWindow.document;d.open();d.write(c);d.close();
 }
 
-function loginSuccess() {
-  document.getElementById('authScreen').style.display = 'none';
-  document.getElementById('deskUser').innerText = currentUser;
-  document.getElementById('mobUser').innerText = currentUser;
-  if(isAdmin) {
-    document.getElementById('adminBtn').style.display = 'flex';
-    document.getElementById('deskUser').style.color = '#ff4444';
-    updateAdminStats();
-  }
-  loadChat();
-}
-
-function logout() { localStorage.removeItem('noss_session'); location.reload(); }
-function toggleAuth(m) {
-  document.getElementById('loginForm').classList.toggle('hidden', m!=='login');
-  document.getElementById('signupForm').classList.toggle('hidden', m!=='signup');
-  document.getElementById('authMsg').innerText='';
-}
-
-/* === CHAT === */
-function loadChat() {
-  const mem = JSON.parse(localStorage.getItem(`chat_${currentUser}`) || '[]');
-  const c = document.getElementById('msgContainer');
-  c.innerHTML = '<div class="msg ai"><strong>NOSS:</strong> مرحباً، النظام جاهز V1.3.</div>';
-  mem.forEach(m => addMsg(m.role, m.content));
-}
-
-function addMsg(role, text) {
-  const d = document.createElement('div');
-  d.className = `msg ${role}`;
-  d.innerHTML = role === 'ai' ? `<strong>NOSS:</strong> ${text}` : text;
-  const c = document.getElementById('msgContainer');
-  c.appendChild(d);
-  c.scrollTop = c.scrollHeight;
-}
-
-async function sendChat() {
-  const inp = document.getElementById('chatInput');
-  const txt = inp.value.trim();
-  if(!txt) return;
-  inp.value = '';
-  addMsg('user', txt);
-  saveMsg('user', txt);
-  
-  const loadId = 'load'+Date.now();
-  const loader = document.createElement('div');
-  loader.className = 'msg ai';
-  loader.id = loadId;
-  loader.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> معالجة...';
-  document.getElementById('msgContainer').appendChild(loader);
-  
-  try {
-    const lower = txt.toLowerCase();
-    if(lower.includes('ارسم') || lower.includes('صورة') || lower.includes('image')) {
-      const prompt = txt.replace(/ارسم|صورة|image/gi, '').trim() || 'cyberpunk city';
-      const seed = Math.floor(Math.random()*9999);
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=600&nologo=true&seed=${seed}`;
-      const content = `تفضل:<br><img src="${url}" class="chat-image" onload="document.getElementById('msgContainer').scrollTop=99999">`;
-      document.getElementById(loadId).remove();
-      addMsg('ai', content); saveMsg('ai', content);
-    } else {
-      const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(txt + " (Reply in Arabic)")}`).then(r=>r.text());
-      document.getElementById(loadId).remove();
-      addMsg('ai', res); saveMsg('ai', res);
-    }
-  } catch(e) { document.getElementById(loadId).innerText = "خطأ في الاتصال"; }
-}
-
-function saveMsg(role, content) {
-  const k = `chat_${currentUser}`;
-  const mem = JSON.parse(localStorage.getItem(k) || '[]');
-  mem.push({role, content});
-  if(mem.length>30) mem.shift();
-  localStorage.setItem(k, JSON.stringify(mem));
-  if(isAdmin) updateAdminStats();
-}
-
-/* === CODER === */
-async function generateWebsite() {
-  const p = document.getElementById('codePrompt').value;
-  if(!p) return alert("اكتب وصفاً");
-  
-  const bar = document.getElementById('progBar');
-  const fill = document.getElementById('progFill');
-  const txt = document.getElementById('progText');
-  
-  bar.style.display='block'; fill.style.width='10%'; txt.innerText='INITIALIZING...';
-  
-  setTimeout(() => { fill.style.width='50%'; txt.innerText='BUILDING_LAYOUT...'; }, 800);
-  
-  try {
-    let code = await fetch(`https://text.pollinations.ai/${encodeURIComponent('Create HTML/CSS/JS website: '+p)}?model=openai`).then(r=>r.text());
-    code = code.replace(/```html/g,'').replace(/```/g,'');
-    
-    fill.style.width='100%'; txt.innerText='COMPLETE';
-    document.getElementById('codeOutput').value = code;
-    const d = document.getElementById('previewFrame').contentWindow.document;
-    d.open(); d.write(code); d.close();
-    
-    setTimeout(() => { bar.style.display='none'; fill.style.width='0%'; }, 2000);
-  } catch(e) { txt.innerText='ERROR'; fill.style.background='red'; }
-}
-
-function downloadSite() {
-  const b = new Blob([document.getElementById('codeOutput').value], {type:'text/html'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download='site.html'; a.click();
-}
-
-/* === ADMIN === */
-function updateAdminStats() {
-  if(!isAdmin) return;
-  const db = getUsersDB();
-  let msgs = 0;
-  Object.keys(localStorage).forEach(k => { if(k.startsWith('chat_')) msgs += JSON.parse(localStorage.getItem(k)).length; });
-  
-  document.getElementById('statUsers').innerText = Object.keys(db).length;
-  document.getElementById('statMsgs').innerText = msgs;
-  
-  const tb = document.getElementById('adminUserTable'); tb.innerHTML='';
-  Object.keys(db).forEach(u => {
-    tb.innerHTML += `<tr><td>${u}</td><td style="color:#00ff88">Active</td><td><i class="fas fa-trash" style="color:red;cursor:pointer" onclick="delUser('${u}')"></i></td></tr>`;
-  });
-  
-  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  if(s.ticker) document.getElementById('tickerInput').value = s.ticker;
-  document.getElementById('maintCheck').checked = !!s.maint;
-}
-
-function delUser(u) {
-  if(confirm('حذف؟')) {
-    const db = getUsersDB(); delete db[u]; localStorage.setItem(DB_NAME, JSON.stringify(db));
-    updateAdminStats();
-  }
-}
-
-function saveTheme() {
-  const p = document.getElementById('primaryColorPick').value;
-  const b = document.getElementById('bgColorPick').value;
-  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  s.primary = p; s.bg = b;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  applyTheme();
-}
-
-function saveTicker() {
-  const t = document.getElementById('tickerInput').value;
-  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  s.ticker = t;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-  applyTheme();
-}
-
-function toggleMaint(el) {
-  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  s.maint = el.checked;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
-}
-
-function resetTheme() {
-  localStorage.removeItem(SETTINGS_KEY);
-  location.reload();
-}
-
-function applyTheme() {
-  const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  if(s.primary) document.documentElement.style.setProperty('--primary', s.primary);
-  if(s.bg) document.documentElement.style.setProperty('--bg-color', s.bg);
-  if(s.ticker) document.getElementById('tickerText').innerText = s.ticker;
-}
-
-function setPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+/* UI */
+function v(id){return document.getElementById(id).value;}
+function go(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.getElementById(p).classList.add('active');
+  document.querySelectorAll('.nb').forEach(e=>e.classList.remove('active'));
   event.currentTarget.classList.add('active');
-  if(id==='admin') updateAdminStats();
 }
-
-init();
 </script>
 </body>
 </html>
